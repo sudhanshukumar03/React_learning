@@ -1,52 +1,86 @@
-import { useState,useEffect } from 'react'
-import './App.css'
-import { TodoProvider } from './context'
-import TodoContext from './context'
+import { useState, useEffect } from "react";
+import "./App.css";
+import { TodoProvider } from "./context";
+import { TodoForm } from "./components";
+import TodoItem from "./components/TodoItem";
 
 function App() {
- const [todo,setTodo] = useState([])
- const addTodo=(todo)=>{
-    setTodo((prev)=>[{id:Date.now(),...todo},...prev])
- }
+    const [todos, setTodos] = useState([]);
 
- const updateTodo=(id,todo)=>{
-    setTodo((prev)=>prev.map((prevTodo)=>(prevTodo.id===id ?todo:prevTodo)))
- }
- const deleteTodo=(id)=>{
-    setTodo((prev)=>prev.filter((todo)=>todo.id!=id))
- }
- const toggleComplete=(id)=>{
-    setTodo((prev)=>prev.map((prevTodo)=>prevTodo===id?{...prevTodo, completed:!prevTodo.completed}:"false"))
- }
+    const addTodo = (todo) => {
+        setTodos((prev) => [{ id: Date.now(), ...todo }, ...prev]);
+    };
 
- useEffect(()=>{
-   const todo=JSON.parse(localStorage.getItem("todo"))
-   if(todo && todo.length>0){
-    setTodo(todo)
-   }
- },[])
+    const updateTodo = (id, todo) => {
+        setTodos((prev) =>
+            prev.map((prevTodo) =>
+                prevTodo.id === id ? todo : prevTodo
+            )
+        );
+    };
 
- useEffect(()=>{
-    localStorage.setItem("todo",JSOn.stringyfy(todo))
+    const deleteTodo = (id) => {
+        setTodos((prev) =>
+            prev.filter((todo) => todo.id !== id)
+        );
+    };
 
- },[todo])
+    const toggleComplete = (id) => {
+        setTodos((prev) =>
+            prev.map((prevTodo) =>
+                prevTodo.id === id
+                    ? {
+                          ...prevTodo,
+                          completed: !prevTodo.completed,
+                      }
+                    : prevTodo
+            )
+        );
+    };
 
+    useEffect(() => {
+        const storedTodos = JSON.parse(localStorage.getItem("todos"));
 
-  return (
-    <TodoProvider value={{todos, addTodo, updateTodo, deleteTodo,toggleComplete}}>
-    <div className="bg-[#172842] min-h-screen py-8">
+        if (storedTodos && storedTodos.length > 0) {
+            setTodos(storedTodos);
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem("todos", JSON.stringify(todos));
+    }, [todos]);
+
+    return (
+        <TodoProvider
+            value={{
+                todos,
+                addTodo,
+                updateTodo,
+                deleteTodo,
+                toggleComplete,
+            }}
+        >
+            <div className="bg-[#172842] min-h-screen py-8">
                 <div className="w-full max-w-2xl mx-auto shadow-md rounded-lg px-4 py-3 text-white">
-                    <h1 className="text-2xl font-bold text-center mb-8 mt-2">Manage Your Todos</h1>
+                    <h1 className="text-2xl font-bold text-center mb-8 mt-2">
+                        Manage Your Todos
+                    </h1>
+
                     <div className="mb-4">
-                        {/* Todo form goes here */} 
+                        <TodoForm />
                     </div>
+
                     <div className="flex flex-wrap gap-y-3">
-                        {/*Loop and Add TodoItem here */}
+                        {todos.map((todo) => (
+                            <div key={todo.id} className="w-full">
+                                <TodoItem todo={todo} />
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
-      </TodoProvider>
-  )
+        </TodoProvider>
+    );
 }
 
-export default App
+export default App;

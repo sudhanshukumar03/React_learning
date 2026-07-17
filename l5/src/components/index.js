@@ -1,6 +1,6 @@
 import TodoForm from "./TodoForm"
-import TodItem from "./TodoItem"
+import TodoItem from "./TodoItem"
 
 
 
-export {TodoForm,TodoForm}
+export {TodoForm,TodoItem}
