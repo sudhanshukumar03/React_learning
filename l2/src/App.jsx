@@ -12,7 +12,7 @@ function App() {
   return (
     <>
     
-    <h1>life is full of chao</h1>
+    <h1>lifeChaos</h1>
      
     </>
   )
