@@ -19,12 +19,14 @@ export class AuthService{
                 //call another method
                 return this.ogin({email,password})
 
-            }else{
+            }
+            else{
                 return userAccount
 
             }
             
-           } catch (error) {
+           } 
+           catch (error) {
                 throw Error;
             
            }
@@ -32,7 +34,8 @@ export class AuthService{
     async login({email,password}){
         try {
             return await this.account.createEmailPasswordSession(email,password)
-        } catch (error) {
+        } 
+        catch (error) {
             throw Error;
         }
 
@@ -40,7 +43,8 @@ export class AuthService{
     async getCurrentUser(){
         try {
             return await this.account.get();
-        } catch (error) {
+        } 
+        catch (error) {
             console.log("Appwrite service :: getCurrentUser:: error",Error);
             
         }
@@ -49,7 +53,8 @@ export class AuthService{
     async logOut(){
         try {
             return await this.account.deleteSession();
-        } catch (error) {
+        } 
+        catch (error) {
             console.log("Appwrite service :: logout :: error",Error);
             
         }
