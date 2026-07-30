@@ -19,9 +19,11 @@ function App() {
     })
     .finally(()=>setLoading(false))//finally is used to set loading to false after the first render is complete,so that we can show the main content of the app after the first render is complete
   },[])
-return !loading? (
-     <div> </div>
-):null
+return !loading ? (
+  <div className="text-2xl font-bold text-green-500">
+    Tailwind is Working 🚀
+  </div>
+) : null;
 
 }
 
