@@ -20,8 +20,10 @@ export class service{
                 content,
                 featureImage,
                 status,
-                userId})
-        } catch (error) {
+                userId
+            })
+        } 
+        catch (error) {
             console.log("Appwrite service :: createDocument :: error",Error);  
             
         }
@@ -35,7 +37,8 @@ export class service{
                 status
                 
             })
-        } catch (error) {
+        } 
+        catch (error) {
             console.log("Appwrite service :: updateDocument :: error",Error);
         }
     }
@@ -53,8 +56,36 @@ export class service{
             console.log("Appwrite service :: deletePost :: error",Error);
         }   
     }
-        
+    async getPost(slug){
+        try {
+            await this.Databases.getDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionId,
+                slug
+            )
+            
+        } 
+        catch (error) {
+            console.log("Appwrite service :: getPost :: error",Error);
+        }
+
+    }
+    async getAllPosts(query=[Query.equal('status','equal')]){ 
+        try {
+            await this.Databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionId,
+                query,
+                
+            )
+        } 
+        catch (error) {
+            console.log("Appwrite Service :: getAllPosts:: error",error);
+            return false;
+            
+        }
+}
 }
     
 const Service = new service();
-export default Service;
+export default Service; 
