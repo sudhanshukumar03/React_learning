@@ -1,4 +1,4 @@
-import conf from "../conf/conf.js";
+import conf from "../conf/conf";
 import { Client, Account, ID } from "appwrite";
 
 export class AuthService {
@@ -13,6 +13,7 @@ export class AuthService {
         this.account = new Account(this.client);
     }
 
+    // Create Account
     async createAccount({ email, password, name }) {
         try {
             const userAccount = await this.account.create(
@@ -23,41 +24,53 @@ export class AuthService {
             );
 
             if (userAccount) {
-                return this.Login({ email, password });
-            } else {
-                return userAccount;
+                return await this.login({ email, password });
             }
 
+            return userAccount;
         } catch (error) {
+            console.log("Appwrite Service :: createAccount :: error", error);
             throw error;
         }
     }
 
-    async Login({ email, password }) {
+    // Login
+    async login({ email, password }) {
         try {
-            return await this.account.createEmailPasswordSession(email, password);
+            return await this.account.createEmailPasswordSession(
+                email,
+                password
+            );
         } catch (error) {
+            console.log("Appwrite Service :: login :: error", error);
             throw error;
         }
     }
 
+    // Get Current User
     async getCurrentUser() {
         try {
             return await this.account.get();
         } catch (error) {
-            console.log("Appwrite service :: getCurrentUser :: error", error);
+            console.log(
+                "Appwrite Service :: getCurrentUser :: error",
+                error
+            );
+            return null;
         }
-        return null;
     }
 
-    async LogOut() {
+    // Logout
+    async logout() {
         try {
-            return await this.account.deleteSession('current');
+            return await this.account.deleteSession("current");
         } catch (error) {
-            console.log("Appwrite service :: logout :: error", error);
+            console.log("Appwrite Service :: logout :: error", error);
+            throw error;
         }
     }
 }
 
 const authService = new AuthService();
+
 export default authService;

@@ -1,128 +1,160 @@
-import React, { use, useCallback } from 'react'
-import { useForm } from 'react-hook-form'
-import {Button,Input,Select,RTE} from '../index'
-import service from '../../appwrite/config'
-import { useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
-import { useEffect } from 'react'
+import React, { useCallback, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { Button, Input, Select, RTE } from "../index";
+import service from "../../appwrite/config";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
+function PostForm({ post }) {
+    const navigate = useNavigate();
+    const userData = useSelector((state) => state.auth.userData);
 
-function PostForm({post}) {
-    const {register,handleSubmit,watch,setValue,control,getValues}=useForm({
-        defaultValues:{
-            title:post?.title||"",
-            slug:post?.slug||"",
-            content:post?.content||"",
-            status:post?.status||"active",
+    const {
+        register,
+        handleSubmit,
+        watch,
+        setValue,
+        control,
+        getValues,
+    } = useForm({
+        defaultValues: {
+            title: post?.title || "",
+            slug: post?.slug || "",
+            content: post?.content || "",
+            status: post?.status || "active",
+        },
+    });
+
+    const slugTransform = useCallback((value) => {
+        if (typeof value === "string") {
+            return value
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, "-")
+                .replace(/[^a-z0-9-]/g, "");
         }
-    })
-    const navigate=useNavigate()
-    const userData=useSelector((state)=>state.auth.userData)
-    const submit =async(data)=>{
-        if(post){
-            data.image[0]?service.uploadFile(data.image[0]):null
-            if(file){
-                service.deleteFile(post.featureImage)
+        return "";
+    }, []);
 
+    useEffect(() => {
+        const subscription = watch((value, { name }) => {
+            if (name === "title") {
+                setValue(
+                    "slug",
+                    slugTransform(value.title),
+                    { shouldValidate: true }
+                );
             }
-            const dbPost=await service.updateDocument(post.$id,{
+        });
+
+        return () => subscription.unsubscribe();
+    }, [watch, slugTransform, setValue]);
+
+    const submit = async (data) => {
+        if (post) {
+            const file = data.image?.[0]
+                ? await service.uploadFile(data.image[0])
+                : null;
+
+            if (file) {
+                await service.deleteFile(post.featureImage);
+            }
+
+            const dbPost = await service.updatePost(post.$id, {
                 ...data,
-                featureImage:file?file.$id:undefined,
-            })
-                if(dbPost){
-                    navigate(`/post/${dbPost.$id}`)
-                }
-                else{
-                    const file=await service.uploadFile(data.image[0])
-                    if(file){
-                        if(file){
-                            const field=file.$id
-                            data.featureImage=field
-                            await service.createDocument({
-                                ...data,
-                                userId:userData.$id
-                            })
-                            if(dbPost){
-                                navigate(`/post/${dbPost.$id}`)
-                            }
+                featureImage: file ? file.$id : post.featureImage,
+            });
 
-                        }
-                    }
+            if (dbPost) {
+                navigate(`/post/${dbPost.$id}`);
+            }
+        } else {
+            const file = await service.uploadFile(data.image[0]);
+
+            if (file) {
+                const dbPost = await service.createPost({
+                    ...data,
+                    featureImage: file.$id,
+                    userId: userData.$id,
+                });
+
+                if (dbPost) {
+                    navigate(`/post/${dbPost.$id}`);
                 }
-                
             }
         }
-    }
-    const slugTransform=useCallback((value)=>{
-        if(value && typeof value==="string"){
-            return value.trim().toLowerCase().replace(/ []/g,'-').replace(/[^a-zA-Z0-9-]/g,'')
-        }
-    },[])
-    //interview how to use useEffect to watch the changes in the form and update the slug field based on the title field
-    //interview how to optimize the useEffect to avoid unnecessary re-renders and improve performance
-    React.useEffect(()=>{
-        const subscription=watch((value,{name})=>{
-            if(name==="title"){
-                setValue('slug',slugTransform(value.title,{shouldValidate:true}))
-               
-            }
-        })
-        return ()=>{
-            subscription.unsubscribe()
-        }
-           
-        
+    };
 
-    },[watch,slugTransform,setValue])
- return (
+    return (
         <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
             <div className="w-2/3 px-2">
                 <Input
-                    label="Title :"
+                    label="Title"
                     placeholder="Title"
                     className="mb-4"
                     {...register("title", { required: true })}
                 />
+
                 <Input
-                    label="Slug :"
+                    label="Slug"
                     placeholder="Slug"
                     className="mb-4"
                     {...register("slug", { required: true })}
                     onInput={(e) => {
-                        setValue("slug", slugTransform(e.currentTarget.value), { shouldValidate: true });
+                        setValue(
+                            "slug",
+                            slugTransform(e.currentTarget.value),
+                            { shouldValidate: true }
+                        );
                     }}
                 />
-                <RTE label="Content :" name="content" control={control} defaultValue={getValues("content")} />
+
+                <RTE
+                    label="Content"
+                    name="content"
+                    control={control}
+                    defaultValue={getValues("content")}
+                />
             </div>
+
             <div className="w-1/3 px-2">
                 <Input
-                    label="Featured Image :"
+                    label="Featured Image"
                     type="file"
-                    className="mb-4"
                     accept="image/png, image/jpg, image/jpeg, image/gif"
-                    {...register("image", { required: !post })}
+                    className="mb-4"
+                    {...register("image", {
+                        required: !post,
+                    })}
                 />
+
                 {post && (
                     <div className="w-full mb-4">
                         <img
-                            src={appwriteService.getFilePreview(post.featuredImage)}
+                            src={service.getFilePreview(post.featureImage)}
                             alt={post.title}
                             className="rounded-lg"
                         />
                     </div>
                 )}
+
                 <Select
                     options={["active", "inactive"]}
                     label="Status"
                     className="mb-4"
                     {...register("status", { required: true })}
                 />
-                <Button type="submit" bgColor={post ? "bg-green-500" : undefined} className="w-full">
+
+                <Button
+                    type="submit"
+                    className="w-full"
+                    bgColor={post ? "bg-green-500" : undefined}
+                >
                     {post ? "Update" : "Submit"}
                 </Button>
             </div>
         </form>
     );
+}
 
-
-export default PostForm
+export default PostForm;
